@@ -1,3 +1,4 @@
+import atexit
 import os
 from flask import Flask
 from app.routes import register_routes
@@ -13,6 +14,7 @@ def create_app(config_class="config.EnvConfig"):
     
     # Cria todas as tabelas do banco antes de carregar os dados do CSV
     with app.app_context():
+        db.drop_all()
         db.create_all()
 
     # Registra Blueprints/rotas
@@ -24,5 +26,5 @@ def create_app(config_class="config.EnvConfig"):
         csv_path = os.path.join(app.root_path, "..", "documents/movielist.csv")
         result = process_csv_to_movies(csv_path)
         print(result)  # Exibe o resultado no console
-    
+            
     return app

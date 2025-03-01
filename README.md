@@ -26,8 +26,18 @@ This project is a Flask-based application for managing movie data, including imp
    ```
 
 2. **Install dependencies:**
+   <br>if poetry
    ```bash
    poetry install
+   ```
+   
+   if pip linux
+    ```bash
+   python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+   ```
+   if pip Windows
+      ```bash
+   python -m venv .venv && .venv\Scripts\activate && pip install -r requirements.txt
    ```
 
 3. **Set up environment variables:**

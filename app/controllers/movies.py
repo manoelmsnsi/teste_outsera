@@ -7,7 +7,7 @@ movies_bp = Blueprint("movies", __name__)
 @movies_bp.route("/awarded-producer", methods=["GET"])
 def get_awarded_producer()-> ResponseModel:
     try:
-        longest_interval_producer, longest_interval, shortest_interval_producer, shortest_interval = get_producers_with_longest_and_shortest_intervals()
+        longest_interval_producer, shortest_interval_producer = get_producers_with_longest_and_shortest_intervals()
         
         if not (longest_interval_producer and shortest_interval_producer):
             return jsonify({
@@ -18,14 +18,8 @@ def get_awarded_producer()-> ResponseModel:
 
         # Preparing response
         response_data = ProducerIntervalResponse(
-            producer_with_longest_interval=AwardedProducerResponse(
-                producer=longest_interval_producer,
-                interval=longest_interval
-            ),
-            producer_with_shortest_interval=AwardedProducerResponse(
-                producer=shortest_interval_producer,
-                interval=shortest_interval
-            )
+            min=longest_interval_producer,
+            max=shortest_interval_producer
         )
         
         return jsonify({

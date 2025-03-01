@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, List, Optional
 from pydantic import BaseModel, field_validator
 
 class MovieRecord(BaseModel):
@@ -23,13 +23,20 @@ class MovieRecord(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
 class AwardedProducerResponse(BaseModel):
     producer: str
     interval: int 
-
+    previousWin: int
+    followingWin: int
+    
+    model_config = {
+        "from_attributes": True
+    }
 class ProducerIntervalResponse(BaseModel):
-    producer_with_longest_interval: AwardedProducerResponse
-    producer_with_shortest_interval: AwardedProducerResponse
+    min: List[AwardedProducerResponse]
+    max: List[AwardedProducerResponse]
 
 class ResponseModel(BaseModel):
     status_code: int

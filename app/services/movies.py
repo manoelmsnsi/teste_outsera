@@ -1,10 +1,11 @@
 import csv
 import logging
+from typing import List, Optional, Tuple
 from app.extensions import db
 from pydantic import ValidationError
 
 from app.models.movies import MoviesData
-from app.schemas.movies import MovieRecord  # Import the Pydantic model
+from app.schemas.movies import AwardedProducerResponse, MovieRecord  # Import the Pydantic model
 
 # Required columns for validation
 REQUIRED_COLUMNS = {"year", "studios", "title", "producers", "winner"}
@@ -69,9 +70,10 @@ def process_csv_to_movies(file_path)-> dict:
         return {"error": str(e)}
 
 
-def get_producers_with_longest_and_shortest_intervals()-> tuple:
+def get_producers_with_longest_and_shortest_intervals() -> Tuple[List[AwardedProducerResponse], List[AwardedProducerResponse]]:
     """
-    Retrieves producers with the longest and shortest intervals between winning awards.
+    Recupera os produtores com os maiores e menores intervalos entre vitórias,
+    retornando todos os registros que possuam o mesmo intervalo máximo ou mínimo.
     """
     awards = db.session.query(
         MoviesData.producers,
@@ -79,37 +81,39 @@ def get_producers_with_longest_and_shortest_intervals()-> tuple:
     ).filter(MoviesData.winner == True).order_by(MoviesData.producers, MoviesData.year).all()
 
     if not awards:
-        return None, None, None, None
+        return [], []
 
+    # Agrupa os anos de vitória por produtor
     producers = {}
-    
-    # Organize awards by producer
     for producer, year in awards:
         if producer not in producers:
             producers[producer] = []
         producers[producer].append(year)
 
-    longest_interval = 0  # in years
-    shortest_interval = float("inf")  # Start with a large interval (infinity)
-    producer_with_longest_interval = None
-    producer_with_shortest_interval = None
-    
+    # Coleta todos os intervalos entre vitórias
+    intervals: List[AwardedProducerResponse] = []
     for producer, years in producers.items():
         if len(years) < 2:
-            continue
-        
+            continue  # Precisa ter pelo menos duas vitórias para calcular um intervalo
         years.sort()
-
-        # Calculate intervals between consecutive awards
         for i in range(1, len(years)):
-            interval = years[i] - years[i - 1]
-            
-            if interval > longest_interval:
-                longest_interval = interval
-                producer_with_longest_interval = producer
-            
-            if interval < shortest_interval:
-                shortest_interval = interval
-                producer_with_shortest_interval = producer
-    
-    return producer_with_longest_interval, longest_interval, producer_with_shortest_interval, shortest_interval
+            interval_val = years[i] - years[i - 1]
+            intervals.append(AwardedProducerResponse(
+                producer=producer,
+                interval=interval_val,
+                previousWin=years[i - 1],
+                followingWin=years[i]
+            ))
+
+    if not intervals:
+        return [], []
+
+    # Determina os valores máximo e mínimo dos intervalos
+    max_interval_value = max(record.interval for record in intervals)
+    min_interval_value = min(record.interval for record in intervals)
+
+    # Filtra todos os registros que possuem o mesmo intervalo máximo ou mínimo
+    shortest_intervals = [record for record in intervals if record.interval == min_interval_value]
+    longest_intervals = [record for record in intervals if record.interval == max_interval_value]
+
+    return shortest_intervals, longest_intervals
