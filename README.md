@@ -76,15 +76,15 @@ poetry run pytest
     {
       "status_code": 200,
       "data": {
-        "producer_with_longest_interval": {
+        "min": [{
           "producer": "John",
           "interval": 5
-        },
-        "producer_with_shortest_interval": {
+        }],
+        "max": [{
           "producer": "Jane",
           "interval": 2
         }
-      },
+      }],
       "detail": null
     }
     ```
