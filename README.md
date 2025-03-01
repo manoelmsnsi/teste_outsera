@@ -74,19 +74,27 @@ poetry run pytest
   - Response: 
     ```json
     {
-      "status_code": 200,
-      "data": {
-        "min": [{
-          "producer": "John",
-          "interval": 5
-        }],
-        "max": [{
-          "producer": "Jane",
-          "interval": 2
-        }
-      }],
-      "detail": null
-    }
+  "data": {
+    "max": [
+      {
+        "followingWin": 2050,
+        "interval": 31,
+        "previousWin": 2019,
+        "producer": "teste max"
+      }
+    ],
+    "min": [
+      {
+        "followingWin": 2020,
+        "interval": 1,
+        "previousWin": 2019,
+        "producer": "teste min"
+      }
+    ]
+  },
+  "detail": null,
+  "status_code": 200
+}
     ```
 
 ## CSV Import
