@@ -1,40 +1,39 @@
 import csv
 import logging
-from typing import List, Optional, Tuple
-from app.extensions import db
+from typing import List, Tuple
 from pydantic import ValidationError
 
-from app.models.movies import MoviesData
-from app.schemas.movies import AwardedProducerResponse, MovieRecord  # Import the Pydantic model
+from app.movie.model import MoviesData
+from app.movie.repository import MoviesRepository
+from app.movie.schema import AwardedProducerResponse, MovieRecord  # Pydantic model
 
-# Required columns for validation
+# Colunas obrigatórias para validação
 REQUIRED_COLUMNS = {"year", "studios", "title", "producers", "winner"}
 
-def process_csv_to_movies(file_path)-> dict:
+def process_csv_to_movies(file_path) -> dict:
     """
-    Reads a CSV file, validates its structure using Pydantic, and inserts only valid records into the database.
-    Invalid records are saved in a separate file for later processing.
+    Lê um arquivo CSV, valida a estrutura usando Pydantic e insere apenas os registros válidos.
+    Registros inválidos são salvos em um arquivo separado para posterior análise.
     """
     invalid_records = []
-    
+    repo = MoviesRepository()
+
     try:
-        logging.info("Starting CSV import process")
-        
+        logging.info("Iniciando importação do CSV")
+
         with open(file_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=';')
-            
+
             if not REQUIRED_COLUMNS.issubset(reader.fieldnames):
                 raise ValueError(
-                    f"Invalid CSV. Expected: {REQUIRED_COLUMNS}, "
-                    f"Found: {set(reader.fieldnames)}"
+                    f"CSV inválido. Esperado: {REQUIRED_COLUMNS}, Encontrado: {set(reader.fieldnames)}"
                 )
-            
+
             fieldnames = reader.fieldnames
-            
+
             for index, row in enumerate(reader):
                 try:
                     validated_movie = MovieRecord.model_validate(row)
-                    
                     record = MoviesData(
                         year=int(validated_movie.year),
                         title=validated_movie.title,
@@ -42,17 +41,17 @@ def process_csv_to_movies(file_path)-> dict:
                         producers=validated_movie.producers,
                         winner=validated_movie.winner
                     )
-                    db.session.add(record)
-                
+                    repo.add_movie(record)
+
                 except (ValidationError, TypeError, ValueError) as e:
                     error_msg = str(e)
-                    logging.error(f"Validation error in record {row}: {error_msg}")
-                    row["errors"] = f"{error_msg} (line {index})"
+                    logging.error(f"Erro de validação no registro {row}: {error_msg}")
+                    row["errors"] = f"{error_msg} (linha {index})"
                     invalid_records.append(row)
-            
-            db.session.commit()
-        
-        # Save invalid records to a separate file
+
+            repo.commit()
+
+        # Salva registros inválidos em um arquivo separado
         if invalid_records:
             invalid_file_path = file_path.replace(".csv", "_invalid.csv")
             with open(invalid_file_path, "w", newline="", encoding="utf-8") as invalid_file:
@@ -60,13 +59,13 @@ def process_csv_to_movies(file_path)-> dict:
                 writer = csv.DictWriter(invalid_file, fieldnames=writer_fieldnames, delimiter=";")
                 writer.writeheader()
                 writer.writerows(invalid_records)
-            logging.info(f"Invalid records saved to {invalid_file_path}")
-        
+            logging.info(f"Registros inválidos salvos em {invalid_file_path}")
+
         return {"message": "CSV imported successfully"}
-    
+
     except Exception as e:
-        db.session.rollback()
-        logging.error(f"Error importing CSV: {e}")
+        repo.rollback()
+        logging.error(f"Erro ao importar CSV: {e}")
         return {"error": str(e)}
 
 
@@ -75,10 +74,8 @@ def get_producers_with_longest_and_shortest_intervals() -> Tuple[List[AwardedPro
     Recupera os produtores com os maiores e menores intervalos entre vitórias,
     retornando todos os registros que possuam o mesmo intervalo máximo ou mínimo.
     """
-    awards = db.session.query(
-        MoviesData.producers,
-        MoviesData.year
-    ).filter(MoviesData.winner == True).order_by(MoviesData.producers, MoviesData.year).all()
+    repo = MoviesRepository()
+    awards = repo.get_awards()
 
     if not awards:
         return [], []
@@ -90,11 +87,11 @@ def get_producers_with_longest_and_shortest_intervals() -> Tuple[List[AwardedPro
             producers[producer] = []
         producers[producer].append(year)
 
-    # Coleta todos os intervalos entre vitórias
+    # Calcula os intervalos entre vitórias
     intervals: List[AwardedProducerResponse] = []
     for producer, years in producers.items():
         if len(years) < 2:
-            continue  # Precisa ter pelo menos duas vitórias para calcular um intervalo
+            continue  # Precisa de pelo menos duas vitórias para calcular um intervalo
         years.sort()
         for i in range(1, len(years)):
             interval_val = years[i] - years[i - 1]
@@ -112,7 +109,7 @@ def get_producers_with_longest_and_shortest_intervals() -> Tuple[List[AwardedPro
     max_interval_value = max(record.interval for record in intervals)
     min_interval_value = min(record.interval for record in intervals)
 
-    # Filtra todos os registros que possuem o mesmo intervalo máximo ou mínimo
+    # Filtra registros com os intervalos máximo e mínimo
     shortest_intervals = [record for record in intervals if record.interval == min_interval_value]
     longest_intervals = [record for record in intervals if record.interval == max_interval_value]
 

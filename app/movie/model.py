@@ -2,6 +2,8 @@ from app.extensions import db
 
 class MoviesData(db.Model):
     __tablename__ = "movies"
+    __table_args__ = {'extend_existing': True}  # Permite redefinir a tabela se já existir
+
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     year = db.Column(db.Integer, nullable=False)

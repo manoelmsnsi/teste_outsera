@@ -1,6 +1,6 @@
 from flask import Blueprint
-from app.controllers.movies import movies_bp
-from app.controllers.health import health_bp
+from app.movie.controller import movies_bp
+from app.health.controller import health_bp
 
 def register_routes(app: Blueprint) -> None:
     """Registra as rotas da aplicação"""

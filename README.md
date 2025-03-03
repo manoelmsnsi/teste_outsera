@@ -6,12 +6,14 @@ This project is a Flask-based application for managing movie data, including imp
 ## Project Structure
 
 - `app/`: Contains the main application code.
-  - `controllers/`: Contains the route handlers.
+  - `module/`: Contains the module application code.
+    - `controller.py`: Contains the route handlers.
+    - `model.py`: Contains the database models.
+    - `reposittory.py`: Contém as classes responsáveis pelo acesso aos dados (Repository).
+    - `schema.py`: Contains Pydantic models for data validation.
+    - `service.py`: Contains the business logic.
   - `extensions.py`: Configures Flask extensions.
-  - `models/`: Contains the database models.
   - `routes.py`: Registers the application routes.
-  - `schemas/`: Contains Pydantic models for data validation.
-  - `services/`: Contains the business logic.
 - `config.py`: Configuration settings for different environments.
 - `run.py`: Entry point for running the application.
 - `tests/`: Contains the test cases.

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
-from app.services.movies import get_producers_with_longest_and_shortest_intervals
-from app.schemas.movies import ProducerIntervalResponse, ResponseModel, AwardedProducerResponse
+from app.movie.service import get_producers_with_longest_and_shortest_intervals
+from app.movie.schema import ProducerIntervalResponse, ResponseModel
 
 movies_bp = Blueprint("movies", __name__)
 

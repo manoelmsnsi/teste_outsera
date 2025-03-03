@@ -1,12 +1,11 @@
 import os
 import csv
-from typing import List
 import pytest
-from run import app  # Importa o app Flask
+from run import app 
 from app.extensions import db
-from app.models.movies import MoviesData
-from app.schemas.movies import AwardedProducerResponse, MovieRecord
-from app.services.movies import get_producers_with_longest_and_shortest_intervals, process_csv_to_movies
+from app.movie.model import MoviesData
+from app.movie.schema import AwardedProducerResponse, MovieRecord
+from app.movie.service import get_producers_with_longest_and_shortest_intervals, process_csv_to_movies
 
 @pytest.fixture(autouse=True)
 def app_context():

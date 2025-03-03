@@ -3,7 +3,7 @@ import os
 from flask import Flask
 from app.routes import register_routes
 from app.extensions import configure_extensions,db
-from app.services.movies import process_csv_to_movies
+from app.movie.service import process_csv_to_movies
 
 def create_app(config_class="config.EnvConfig"):
     app = Flask(__name__)
