@@ -82,10 +82,23 @@ def get_producers_with_longest_and_shortest_intervals() -> Tuple[List[AwardedPro
 
     # Agrupa os anos de vitória por produtor
     producers = {}
+    #o ideal seria salvar o dado corrigido e normalizado no banco
     for producer, year in awards:
-        if producer not in producers:
-            producers[producer] = []
-        producers[producer].append(year)
+        # Primeiro, separa por vírgula
+        producer_list = producer.split(",")
+        
+        # Depois, para cada item na lista, separa por " and "
+        final_producers = []
+        for p in producer_list:
+            final_producers.extend(p.strip().split(" and "))
+
+        # Agora adicionamos cada produtor ao dicionário
+        for p in final_producers:
+            p = p.strip()  # Remover espaços extras
+            if p not in producers:
+                producers[p] = []
+            producers[p].append(year)
+
 
     # Calcula os intervalos entre vitórias
     intervals: List[AwardedProducerResponse] = []

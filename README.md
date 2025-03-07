@@ -59,8 +59,13 @@ This project is a Flask-based application for managing movie data, including imp
 ## Running Tests
 
 To run the tests, use the following command:
+if using poetry
 ```bash
 poetry run pytest
+```
+if using python
+```bash
+python -m pytest
 ```
 
 ## API Endpoints
